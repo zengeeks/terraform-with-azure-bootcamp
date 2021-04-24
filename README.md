@@ -70,8 +70,12 @@ resource "azurerm_resource_group" "example" {
 | `functions`| ビルトイン関数 |
 | `modules` | モジュール |
 | `providers` | プロバイダ |
+| Dependency Lock File | プロバイダやモジュールのインストール状態を保持するファイル（ `.terraform.lock.hcl` ） |
+| `state` | Terraform で構築したリソースの状態を保持する。ローカル、または任意のバックエンドに保持できる |
 
 `input variables`, `local variables` は同一モジュール内で参照可能です。内包するモジュールと値の受け渡しをするには、 `input variables` や `outputs` を利用します。
+
+モジュールの分け方には
 
 詳しくは下記のドキュメントをご参照ください。
 
@@ -91,9 +95,74 @@ resource "azurerm_resource_group" "example" {
 
 ### Terraform CLI
 
+インストールについては [Install Terraform | Terraform - HashiCorp Learn](https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/azure-get-started) をご参照ください。
+
 | よく利用するコマンド | 解説 |
 |----|----|
+| `terraform init` ||
+| `terraform plan` ||
+| `terraform apply` ||
+| `terraform destroy` || 
+| `terraform fmt` | インデントや改行などをフォーマットする |
+
+Terraform CLI は、Azure Cloud Shell にもインストールされているので、それを利用することも可能です。
 
 ### エディタ
 
-ほとんどのエディタで記述可能ですが、[Visual Studio Code](https://code.visualstudio.com/) がおすすめです。[HashiCorp Terraform](https://marketplace.visualstudio.com/items?itemName=HashiCorp.terraform) エクステンションを利用することで、 [Terraform Language Server (terraform-ls)](https://github.com/hashicorp/terraform-ls) を導入し、保存時のフォーマットや入力補完を行うことができます。
+ほとんどのエディタで記述可能ですが、[Visual Studio Code](https://code.visualstudio.com/) がおすすめです。[HashiCorp Terraform](https://marketplace.visualstudio.com/items?itemName=HashiCorp.terraform) エクステンションを利用することで、 [Terraform Language Server (terraform-ls)](https://github.com/hashicorp/terraform-ls) を導入し、保存時のフォーマットや入力補完を行うことができます。（Terraform CLI がインストールされている前提です）
+
+## Azure Provider の利用
+
+Terraform で Microsoft Azure を扱うには、下記の2点を準備する必要があります。
+
+- 認証
+- プロバイダの設定
+
+### 認証
+
+- If you run terraform locally, it's simple to use [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) authentication.
+- When running Terraform non-interactively such as CI/CD pipeline, you should use a Service Principal or Managed Identities.
+  - If the environment that running Terraform is on Azure like VM, you can choose Managed Identities
+  - In others, you can use Service Principal authentication with a certificate or client secret
+
+#### 手元の環境で手動で terraform を実行する場合
+
+手元の環境で手動で terraform を実行する場合は、 Azure CLI が手軽に利用できます。
+
+| 方法 | 説明 |
+|----|----|
+| [Azure CLI を利用する](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/azure_cli) | 手元の環境で、手動で terraform を実行する場合にはおすすめ。 |
+
+#### CI/CD のような非インタラクティブな環境で実行する場合
+
+| 方法 | 説明 |
+|----|----|
+| [証明書による Service Principal を利用する](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_certificate) | 証明書による認証で発行した Service Principal を利用する |
+| [Client Secret による Service Principal を利用する](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret) | Service Principal 発行時に生成される Client Secret を指定し利用する |
+| [Managed Identity を利用する](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/managed_service_identity) | Manage Identities は Azure の機能で、インフラストラクチャ側の構成でリソース間の認証を済ませることができる |
+
+### プロバイダの設定
+
+Then, configure Azure Provider in `.tf` file.
+
+```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.56.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
+provider "azurerm" {
+  features {}
+}
+```
+
+### サンプル
+- Azure Functions + Cosmos DB
+- Azure Functions + Cosmos DB with VNet
