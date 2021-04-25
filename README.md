@@ -47,12 +47,12 @@ $ tree minimal-module/
 
 #### 生成されるファイル
 
+Terraform の実行の過程で生成されるファイルについて紹介します。
+
 | ファイル名 | 解説 |
 |----|----|
-| `.terraform.lock.hcl` | Dependency Lock File. プロバイダやモジュールのインストール状態を保持するファイル |
-| `terraform.tfstate`  | Terraform CLI で構築したリソースの状態（ `state` ）を保持するファイル |
-
-`state` は、Terraform CLI の規定では、実行したローカル環境にファイルで保存しますが、複数人で対象のリソースを管理したい場合は、プロバイダの `backend` を利用し、この `state` を共有できる場所で管理することができます。
+| `.terraform.lock.hcl` | Dependency Lock File. プロバイダやモジュールのインストール状態を保持するファイル。コードと併せてバージョン管理に含めると、Terraform の実行環境を複数人で共有できる。 |
+| `terraform.tfstate`  | Terraform CLI で構築したリソースの状態（ `state` ）を保持するファイル。Terraform CLI の規定では、`state` を実行したローカル環境にファイルで保存する。複数人で対象のリソースを扱いたい場合は、プロバイダの `backend` を利用し、この `state` を共有して管理できる。 |
 
 詳しくは下記をご参照ください。
 
@@ -62,7 +62,7 @@ $ tree minimal-module/
 
 ### Terraform の記法
 
-Terraform のスクリプトは、 `HCL` で記述します。（ `json` でも記述できますが一般的ではありません）
+Terraform のコードは、 `HCL` で記述します。（ `json` でも記述できますが一般的ではありません）
 
 下記のように `{}` で囲われたブロックの中に `provider` や `resource` を定義します。
 
@@ -138,7 +138,7 @@ Terraform で Microsoft Azure を扱うには、下記の2点を準備する必�
 
 ### Azure の認証
 
-Azure へリソースをデプロイするには認証が必要です。
+Azure へリソースをデプロイするには認証が必要です。いくつかの方法があるので、用途に応じて使い分けましょう。 
 
 - Terraform を手元の環境で実行する場合は、[Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) による認証が手軽です。
 - CI/CD パイプラインなどの非インタラクティブな環境で Terraform を実行する場合は、 Service Principal か Managed Identities を利用してください。
@@ -186,7 +186,7 @@ provider "azurerm" {
 - [Docs overview | hashicorp/azurerm | Terraform Registry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 - [Backend Type: azurerm - Terraform by HashiCorp](https://www.terraform.io/docs/language/settings/backends/azurerm.html)
 
-### サンプル
+## サンプル
 
 下記を参考に、Terraform によるリソースのデプロイを体験してみましょう。
 
