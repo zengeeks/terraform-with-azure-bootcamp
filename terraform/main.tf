@@ -29,6 +29,14 @@ module "function_cosmosdb_basic" {
   source = "./modules/function_cosmosdb_basic"
 
   resource_group_name  = var.resource_group_name
-  app_identifier       = var.app_identifier
+  app_identifier       = "${var.app_identifier}-basic"
+  function_package_url = module.get_function_package_url.download_url
+}
+
+module "function_cosmosdb_via_vnet" {
+  source = "./modules/function_cosmosdb_via_vnet"
+
+  resource_group_name  = var.resource_group_name
+  app_identifier       = "${var.app_identifier}-via-vnet"
   function_package_url = module.get_function_package_url.download_url
 }
