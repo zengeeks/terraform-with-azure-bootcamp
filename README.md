@@ -11,9 +11,9 @@ Terraform を利用して Microsoft Azure のリソースを管理するため�
 
 ### Terraform について
 
-HashiCorp 社が提供する [Terraform](https://www.terraform.io/`) は、Microsoft Azure などのクラウドプラットフォームや様々なインフラストラクチャのリソースを、コードで管理できるツールです。
+HashiCorp 社が提供する [Terraform](https://www.terraform.io/) は、Microsoft Azure などのクラウドプラットフォームや様々なインフラストラクチャのリソースを、コードで管理できるツールです。
 
-必要なインフラストラクチャの構造を、HCL (_Hashicorp Configure Language_) と呼ばれる記法でコードとして書き起こし、そのコードをもとにリソースを管理します。Terraform は、管理対象のリソースの状態を取得し、コードとの差分を算出し反映することができるため、冪等性の担保に優れています。また、インフラストラクチャの構造をコードとして管理できるため、変更時のレビューや再現が容易になります。
+必要なインフラストラクチャの構造を、 _HCL_ (_Hashicorp Configure Language_) と呼ばれる記法でコードとして書き起こし、そのコードをもとにリソースを管理します。Terraform は、管理対象のリソースの状態を取得し、コードとの差分を算出し反映することができるため、冪等性の担保に優れています。また、インフラストラクチャの構造をコードとして管理できるため、変更時のレビューや再現が容易になります。
 
 実行には、Terraform CLI が利用できるほか、HashiCorp 社がホストするプラットフォーム [Terraform Cloud](https://www.terraform.io/cloud) も利用可能です。また、GitHub Actions や Azure Piipelines などの CI/CD パイプラインでもサポートされています。 
 
@@ -47,7 +47,7 @@ $ tree minimal-module/
 
 ### Terraform の記法
 
-Terraform のスクリプトは、 `HCL` (_Hashicorp Configure Language_) で記述します。（ `json` でも記述できますが一般的ではありません）
+Terraform のスクリプトは、 `HCL` で記述します。（ `json` でも記述できますが一般的ではありません）
 
 下記のように `{}` で囲われたブロックの中に `provider` や `resource` を定義します。
 
@@ -68,11 +68,13 @@ resource "azurerm_resource_group" "example" {
 | `variable` | 入力させる変数（引数）を定義する。 `var.` で参照する。 |
 | `output` | 出力を定義する |
 | `locals` | ローカル変数を定義する。 `local.` で参照する。 |
-| `resource` | リソースを定義する |
-| `data` | データソース（参照）を定義する |
+| `resource` | リソースを定義する。 `resource` に続いて記述するリソースタイプを用いて参照する。 |
+| `data` | データソース（参照）を定義する。 `data.` で参照する。 |
 | `module` | モジュールを読み込む。 `module.` で参照する。 |
 
 `variable`, `locals` は同一モジュール内で参照可能です。内包するモジュールと値の受け渡しをするには、 `variable` や `outputs` を利用します。
+
+また、Terraform は便利なビルトイン関数を多数提供しています。数値や文字列を操作する関数をはじめ、ネットワークのCIDRを算出する関数など非常に便利に利用することができます。
 
 詳しくは下記をご参照ください。
 
@@ -80,19 +82,16 @@ resource "azurerm_resource_group" "example" {
 - [Overview - Configuration Language - Terraform by HashiCorp](https://www.terraform.io/docs/language/index.html)
 - [Syntax - Configuration Language - Terraform by HashiCorp](https://www.terraform.io/docs/language/syntax/configuration.html)
 - [Expressions - Configuration Language - Terraform by HashiCorp](https://www.terraform.io/docs/language/expressions/index.html)
+- [Functions - Configuration Language - Terraform by HashiCorp](https://www.terraform.io/docs/language/functions/index.html)
 
 ### 便利な機能
 
 | キーワード | 解説 |
 |----|----|
-| `functions`| ビルトイン関数 |
-| `providers` | プロバイダ |
 | Dependency Lock File | プロバイダやモジュールのインストール状態を保持するファイル（ `.terraform.lock.hcl` ） |
 | `state` | Terraform で構築したリソースの状態を保持する。ローカル、または任意のバックエンドに保持できる |
 
-
 詳しくは下記のドキュメントをご参照ください。
-
 
 ### プロバイダ
 
@@ -111,13 +110,13 @@ resource "azurerm_resource_group" "example" {
 
 | よく利用するコマンド | 解説 |
 |----|----|
-| `terraform init` ||
-| `terraform plan` ||
-| `terraform apply` ||
-| `terraform destroy` || 
+| `terraform init` | 主に、プロバイダの読み込みを行う |
+| `terraform plan` | 対象のリソースの状態を取得し、更新差分を算出する |
+| `terraform apply` | 更新を反映する（デプロイする） |
+| `terraform destroy` | 対象のリソースを破棄する | 
 | `terraform fmt` | インデントや改行などをフォーマットする |
 
-Terraform CLI は、Azure Cloud Shell にもインストールされているので、それを利用することも可能です。
+Terraform CLI は、Azure Cloud Shell にもインストールされており、それを利用することも可能です。
 
 ### エディタ
 
