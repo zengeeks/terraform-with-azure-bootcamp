@@ -1,5 +1,5 @@
 resource "azurerm_app_service_plan" "main" {
-  name                = local.app_plan_name
+  name                = "plan-${var.app_identifier}"
   location            = data.azurerm_resource_group.main.location
   resource_group_name = data.azurerm_resource_group.main.name
   sku {

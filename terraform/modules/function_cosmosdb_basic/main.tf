@@ -3,9 +3,7 @@ data "azurerm_resource_group" "main" {
 }
 
 locals {
-  app_plan_name = "plan-${var.app_identifier}"
   function_name = "func-${var.app_identifier}"
-  cosmosdb_name = "cosmos-${var.app_identifier}"
   cosmosdb = {
     database_name = "item"
     throughput    = 400
