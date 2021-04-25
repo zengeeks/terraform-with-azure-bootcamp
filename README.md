@@ -8,6 +8,15 @@ Terraform を利用して Microsoft Azure のリソースを管理するため�
   - サンプル
 
 ## Terraform の基礎
+
+### Terraform について
+
+HashiCorp 社が提供する [Terraform](https://www.terraform.io/`) は、Microsoft Azure などのクラウドプラットフォームや様々なインフラストラクチャのリソースを、コードで管理できるツールです。
+
+必要なインフラストラクチャの構造を、HCL (_Hashicorp Configure Language_) と呼ばれる記法でコードとして書き起こし、そのコードをもとにリソースを管理します。Terraform は、管理対象のリソースの状態を取得し、コードとの差分を算出し反映することができるため、冪等性の担保に優れています。また、インフラストラクチャの構造をコードとして管理できるため、変更時のレビューや再現が容易になります。
+
+実行には、Terraform CLI が利用できるほか、HashiCorp 社がホストするプラットフォーム [Terraform Cloud](https://www.terraform.io/cloud) も利用可能です。また、GitHub Actions や Azure Piipelines などの CI/CD パイプラインでもサポートされています。 
+
 ### ファイル構成
 
 Terraform 言語は、 `.tf` の拡張子のファイルに記述します。エンコーディングは `UTF-8` です。改行は `LF` または `CRLF` どちらもサポートされていますが、Terraform のフォーマッターは `LF` に変換します。
@@ -54,33 +63,36 @@ resource "azurerm_resource_group" "example" {
 }
 ```
 
+| よく使うキーワード | 解説 |
+|----|----|
+| `variable` | 入力させる変数（引数）を定義する。 `var.` で参照する。 |
+| `output` | 出力を定義する |
+| `locals` | ローカル変数を定義する。 `local.` で参照する。 |
+| `resource` | リソースを定義する |
+| `data` | データソース（参照）を定義する |
+| `module` | モジュールを読み込む。 `module.` で参照する。 |
+
+`variable`, `locals` は同一モジュール内で参照可能です。内包するモジュールと値の受け渡しをするには、 `variable` や `outputs` を利用します。
+
 詳しくは下記をご参照ください。
 
+- [Get Started - Azure | Terraform - HashiCorp Learn](https://learn.hashicorp.com/collections/terraform/azure-get-started)
+- [Overview - Configuration Language - Terraform by HashiCorp](https://www.terraform.io/docs/language/index.html)
 - [Syntax - Configuration Language - Terraform by HashiCorp](https://www.terraform.io/docs/language/syntax/configuration.html)
 - [Expressions - Configuration Language - Terraform by HashiCorp](https://www.terraform.io/docs/language/expressions/index.html)
 
-### 用語解説
+### 便利な機能
 
-| 用語 | 解説 |
+| キーワード | 解説 |
 |----|----|
-| `input variables` | 入力（引数） |
-| `outputs` | 出力 |
-| `local variables` | ローカル変数 |
-| `resource` and `data` | リソースとデータソース（参照） |
 | `functions`| ビルトイン関数 |
-| `modules` | モジュール |
 | `providers` | プロバイダ |
 | Dependency Lock File | プロバイダやモジュールのインストール状態を保持するファイル（ `.terraform.lock.hcl` ） |
 | `state` | Terraform で構築したリソースの状態を保持する。ローカル、または任意のバックエンドに保持できる |
 
-`input variables`, `local variables` は同一モジュール内で参照可能です。内包するモジュールと値の受け渡しをするには、 `input variables` や `outputs` を利用します。
-
-モジュールの分け方には
 
 詳しくは下記のドキュメントをご参照ください。
 
-- [Get Started - Azure | Terraform - HashiCorp Learn](https://learn.hashicorp.com/collections/terraform/azure-get-started)
-- [Overview - Configuration Language - Terraform by HashiCorp](https://www.terraform.io/docs/language/index.html)
 
 ### プロバイダ
 
@@ -163,6 +175,42 @@ provider "azurerm" {
 }
 ```
 
+`backend` の `azurerm` を利用すると、[Azure Blob Storage](https://docs.microsoft.com/en-us/azure/storage/common/storage-introduction) に `state` を保持することができます。詳しくは、下記をご参照ください。
+
+- [Backend Type: azurerm - Terraform by HashiCorp](https://www.terraform.io/docs/language/settings/backends/azurerm.html)
+
 ### サンプル
+
+```bash
+RESOURCE_GROUP_NAME="rg-playground20210425"
+LOCATION="japaneast"
+APP_IDENTIFIER="comfort-music"
+
+az login
+# Create a resource group for working space, if need
+# az group create --location $LOCATION --name $RESOURCE_GROUP_NAME
+
+cd terraform
+terraform init
+
+terraform plan
+
+terraform plan \
+  -var resource_group_name=$RESOURCE_GROUP_NAME \
+  -var app_identifier=$APP_IDENTIFIER
+
+terraform apply
+
+terraform apply \
+  -var resource_group_name=$RESOURCE_GROUP_NAME \
+  -var app_identifier=$APP_IDENTIFIER
+
+terraform destroy
+
+terraform destroy \
+  -var resource_group_name=$RESOURCE_GROUP_NAME \
+  -var app_identifier=$APP_IDENTIFIER
+```
+
 - Azure Functions + Cosmos DB
 - Azure Functions + Cosmos DB with VNet
