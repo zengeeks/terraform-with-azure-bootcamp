@@ -45,6 +45,21 @@ $ tree minimal-module/
 
 詳しくは [Standard Module Structure - Terraform by HashiCorp](https://www.terraform.io/docs/language/modules/develop/structure.html) をご参照ください。
 
+#### 生成されるファイル
+
+| ファイル名 | 解説 |
+|----|----|
+| `.terraform.lock.hcl` | Dependency Lock File. プロバイダやモジュールのインストール状態を保持するファイル |
+| `terraform.tfstate`  | Terraform CLI で構築したリソースの状態（ `state` ）を保持するファイル |
+
+`state` は、Terraform CLI の規定では、実行したローカル環境にファイルで保存しますが、複数人で対象のリソースを管理したい場合は、プロバイダの `backend` を利用し、この `state` を共有できる場所で管理することができます。
+
+詳しくは下記をご参照ください。
+
+- [Dependency Lock File (.terraform.lock.hcl) - Configuration Language - Terraform by HashiCorp](https://www.terraform.io/docs/language/dependency-lock.html)
+- [State - Terraform by HashiCorp](https://www.terraform.io/docs/language/state/index.html)
+- [Backend Overview - Configuration Language - Terraform by HashiCorp](https://www.terraform.io/docs/language/settings/backends/index.html)
+
 ### Terraform の記法
 
 Terraform のスクリプトは、 `HCL` で記述します。（ `json` でも記述できますが一般的ではありません）
@@ -84,21 +99,13 @@ resource "azurerm_resource_group" "example" {
 - [Expressions - Configuration Language - Terraform by HashiCorp](https://www.terraform.io/docs/language/expressions/index.html)
 - [Functions - Configuration Language - Terraform by HashiCorp](https://www.terraform.io/docs/language/functions/index.html)
 
-### 便利な機能
-
-| キーワード | 解説 |
-|----|----|
-| Dependency Lock File | プロバイダやモジュールのインストール状態を保持するファイル（ `.terraform.lock.hcl` ） |
-| `state` | Terraform で構築したリソースの状態を保持する。ローカル、または任意のバックエンドに保持できる |
-
-詳しくは下記のドキュメントをご参照ください。
-
 ### プロバイダ
 
-各種クラウドのほかにも便利なプロバイダが提供されています。
+各種クラウドプラットフォームへリソースをデプロイするには、プロバイダをインストールする必要があります。また、プラットフォームだけではなく様々な便利なプロバイダが提供されています。
 
 | プロバイダの例 | 解説 |
 |----|----|
+| [azurerm](https://registry.terraform.io/providers/hashicorp/azurerm/latest) | Microsoft Azure のリソースを扱うことができる |
 | [http](https://registry.terraform.io/providers/hashicorp/http/latest) | HTTP GET リクエストを行うことができる |
 | [github](https://registry.terraform.io/providers/integrations/github/latest) | GitHub の API を利用できる |
 
@@ -126,35 +133,28 @@ Terraform CLI は、Azure Cloud Shell にもインストールされており、
 
 Terraform で Microsoft Azure を扱うには、下記の2点を準備する必要があります。
 
-- 認証
+- Azure の認証
 - プロバイダの設定
 
-### 認証
+### Azure の認証
 
-- If you run terraform locally, it's simple to use [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) authentication.
-- When running Terraform non-interactively such as CI/CD pipeline, you should use a Service Principal or Managed Identities.
-  - If the environment that running Terraform is on Azure like VM, you can choose Managed Identities
-  - In others, you can use Service Principal authentication with a certificate or client secret
+Azure へリソースをデプロイするには認証が必要です。
 
-#### 手元の環境で手動で terraform を実行する場合
-
-手元の環境で手動で terraform を実行する場合は、 Azure CLI が手軽に利用できます。
+- Terraform を手元の環境で実行する場合は、[Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) による認証が手軽です。
+- CI/CD パイプラインなどの非インタラクティブな環境で Terraform を実行する場合は、 Service Principal か Managed Identities を利用してください。
+  - 実行環境が Azure 上にある場合（Azure VM など）、Managed Identities を利用することができます
+  - 上記以外は、Service Principal を用いて、証明書またはクライアントシークレットによる認証を利用できます
 
 | 方法 | 説明 |
 |----|----|
-| [Azure CLI を利用する](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/azure_cli) | 手元の環境で、手動で terraform を実行する場合にはおすすめ。 |
-
-#### CI/CD のような非インタラクティブな環境で実行する場合
-
-| 方法 | 説明 |
-|----|----|
+| [Azure CLI を利用する](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/azure_cli) | 手元の環境で手動で terraform を実行する場合にはおすすめ |
 | [証明書による Service Principal を利用する](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_certificate) | 証明書による認証で発行した Service Principal を利用する |
 | [Client Secret による Service Principal を利用する](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret) | Service Principal 発行時に生成される Client Secret を指定し利用する |
 | [Managed Identity を利用する](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/managed_service_identity) | Manage Identities は Azure の機能で、インフラストラクチャ側の構成でリソース間の認証を済ませることができる |
 
 ### プロバイダの設定
 
-Then, configure Azure Provider in `.tf` file.
+プロバイダの設定は、通常、エントリーポイントとなる `main.tf` に記述します。 Azure Provider は下記のように記述します。
 
 ```hcl
 # We strongly recommend using the required_providers block to set the
@@ -163,27 +163,44 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.56.0"
+      version = ">= 2.0.0"
     }
   }
+
+  # Configure backend, if need
+  # backend "azurerm" {}
 }
 
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
   features {}
+
+  # If you want to configure authentication settings on a file instead of environment variables, write down here
+  # subscription_id = "00000000-0000-0000-0000-000000000000"
+  # ...
 }
 ```
 
 `backend` の `azurerm` を利用すると、[Azure Blob Storage](https://docs.microsoft.com/en-us/azure/storage/common/storage-introduction) に `state` を保持することができます。詳しくは、下記をご参照ください。
 
+- [Docs overview | hashicorp/azurerm | Terraform Registry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 - [Backend Type: azurerm - Terraform by HashiCorp](https://www.terraform.io/docs/language/settings/backends/azurerm.html)
 
 ### サンプル
 
+下記を参考に、Terraform によるリソースのデプロイを体験してみましょう。
+
+サンプルコードでは、下記の構成のモジュールを用意しています。
+
+- Azure Functions + Cosmos DB
+- Azure Functions + Cosmos DB （VNetあり）
+
+#### bashの場合
+
 ```bash
-RESOURCE_GROUP_NAME="rg-playground20210425"
+RESOURCE_GROUP_NAME="<デプロイするリソース グループ名>"
 LOCATION="japaneast"
-APP_IDENTIFIER="comfort-music"
+APP_IDENTIFIER="<一意の識別用文字列>"
 
 az login
 # Create a resource group for working space, if need
@@ -192,24 +209,22 @@ az login
 cd terraform
 terraform init
 
-terraform plan
-
 terraform plan \
   -var resource_group_name=$RESOURCE_GROUP_NAME \
   -var app_identifier=$APP_IDENTIFIER
 
-terraform apply
-
 terraform apply \
   -var resource_group_name=$RESOURCE_GROUP_NAME \
   -var app_identifier=$APP_IDENTIFIER
-
-terraform destroy
 
 terraform destroy \
   -var resource_group_name=$RESOURCE_GROUP_NAME \
   -var app_identifier=$APP_IDENTIFIER
 ```
 
-- Azure Functions + Cosmos DB
-- Azure Functions + Cosmos DB with VNet
+`-var` に指定しているのは `variables.tf` で指定した引数です。引数の渡し方はいくつか方法が複数あります。
+
+- 指定ぜずにコマンドを実行し、インタラクティブに指定する
+- コマンドの `-var` を利用して直接渡す
+- `.tfvars` という拡張子を持つファイルから読み込む
+
