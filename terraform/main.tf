@@ -19,6 +19,10 @@ provider "azurerm" {
   # ...
 }
 
+module "get_client_ip" {
+  source = "./modules/get_client_ip"
+}
+
 module "get_function_package_url" {
   source = "./modules/get_function_package_url"
 
@@ -39,4 +43,5 @@ module "function_cosmosdb_via_vnet" {
   resource_group_name  = var.resource_group_name
   app_identifier       = "${var.app_identifier}-via-vnet"
   function_package_url = module.get_function_package_url.download_url
+  client_ip            = module.get_client_ip.client_ip
 }
