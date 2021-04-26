@@ -9,3 +9,7 @@ variable "app_identifier" {
 variable "function_package_url" {
   type = string
 }
+
+variable "client_ip" {
+  type = string
+}

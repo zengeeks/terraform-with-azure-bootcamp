@@ -68,17 +68,10 @@ resource "azurerm_storage_account_network_rules" "for_func" {
 
   default_action             = "Deny"
   virtual_network_subnet_ids = [azurerm_subnet.main.id]
+  ip_rules                   = [var.client_ip]
 }
 
 resource "azurerm_storage_share" "for_func" {
   name                 = local.function_name
   storage_account_name = azurerm_storage_account.for_func.name
-
-  acl {
-    id = data.azurerm_client_config.current.object_id
-
-    access_policy {
-      permissions = "rwdl"
-    }
-  }
 }
