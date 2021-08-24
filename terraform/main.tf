@@ -12,6 +12,8 @@ terraform {
 
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
+  # If the runner doesn't have permission to register providers on Azure, errors may be raised. To prevent it, make skip the registration
+  # skip_provider_registration = "true"
   features {}
 
   # If you want to configure authentication settings on a file instead of environment variables, write down here

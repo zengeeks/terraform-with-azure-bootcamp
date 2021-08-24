@@ -25,6 +25,7 @@ resource "azurerm_function_app" "main" {
   }
 
   app_settings = {
+    AzureWebJobsStorage                      = azurerm_storage_account.for_func.primary_connection_string
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = azurerm_storage_account.for_func.primary_connection_string
     WEBSITE_CONTENTSHARE                     = local.function_name
     WEBSITE_CONTENTOVERVNET                  = 1
@@ -32,15 +33,15 @@ resource "azurerm_function_app" "main" {
     WEBSITE_RUN_FROM_PACKAGE                 = var.function_package_url
     TargetHost                               = regex("^https://(?P<host>[\\d\\w.-]+):443/$", azurerm_cosmosdb_account.main.endpoint).host
   }
-
-  depends_on = [
-    azurerm_storage_share.for_func
-  ]
 }
 
 resource "azurerm_app_service_virtual_network_swift_connection" "main" {
   app_service_id = azurerm_function_app.main.id
   subnet_id      = azurerm_subnet.main.id
+
+  depends_on = [
+    azurerm_storage_account_network_rules.for_func
+  ]
 }
 
 resource "random_string" "storage_for_func" {
@@ -69,9 +70,8 @@ resource "azurerm_storage_account_network_rules" "for_func" {
   default_action             = "Deny"
   virtual_network_subnet_ids = [azurerm_subnet.main.id]
   ip_rules                   = [var.client_ip]
-}
 
-resource "azurerm_storage_share" "for_func" {
-  name                 = local.function_name
-  storage_account_name = azurerm_storage_account.for_func.name
+  depends_on = [
+    azurerm_function_app.main
+  ]
 }

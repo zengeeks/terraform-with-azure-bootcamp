@@ -222,6 +222,31 @@ terraform destroy \
   -var app_identifier=$APP_IDENTIFIER
 ```
 
+```powershell
+$RESOURCE_GROUP_NAME="<デプロイするリソース グループ名>"
+$LOCATION="japaneast"
+$APP_IDENTIFIER="<一意の識別用文字列>"
+
+az login
+# Create a resource group for working space, if need
+# az group create --location $LOCATION --name $RESOURCE_GROUP_NAME
+
+cd terraform
+terraform init
+
+terraform plan `
+  -var resource_group_name=$RESOURCE_GROUP_NAME `
+  -var app_identifier=$APP_IDENTIFIER
+
+terraform apply `
+  -var resource_group_name=$RESOURCE_GROUP_NAME `
+  -var app_identifier=$APP_IDENTIFIER
+
+terraform destroy `
+  -var resource_group_name=$RESOURCE_GROUP_NAME `
+  -var app_identifier=$APP_IDENTIFIER
+```
+
 `-var` に指定しているのは `variables.tf` で指定した引数です。引数の渡し方はいくつか方法が複数あります。
 
 - 指定ぜずにコマンドを実行し、インタラクティブに指定する
