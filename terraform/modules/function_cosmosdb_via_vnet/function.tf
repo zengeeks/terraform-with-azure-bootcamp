@@ -27,7 +27,6 @@ resource "azurerm_function_app" "main" {
   app_settings = {
     AzureWebJobsStorage                      = azurerm_storage_account.for_func.primary_connection_string
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = azurerm_storage_account.for_func.primary_connection_string
-    WEBSITE_CONTENTSHARE                     = local.function_name
     WEBSITE_CONTENTOVERVNET                  = 1
     FUNCTIONS_WORKER_RUNTIME                 = "dotnet"
     WEBSITE_RUN_FROM_PACKAGE                 = var.function_package_url
