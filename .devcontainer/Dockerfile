@@ -8,13 +8,16 @@ RUN apt update && export DEBIAN_FRONTEND=noninteractive \
   && apt install -y --no-install-recommends \
     gnupg \
     software-properties-common \
-    curl
+    curl \
+  && rm -rf /var/lib/apt/lists/*
 
 # Install Terraform CLI
 RUN curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add - \
   && apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
   && apt update && apt install -y --no-install-recommends \
-    terraform
+    terraform \
+  && rm -rf /var/lib/apt/lists/*
 
 # Install Azure CLI
-RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash \
+  && rm -rf /var/lib/apt/lists/*
